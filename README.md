@@ -2,6 +2,14 @@
 
 Minimal C benchmarking library with automatic notebook generation.
 
+## Install
+
+```bash
+./install.sh
+# Add to ~/.bashrc or ~/.zshrc:
+export PATH="$PATH:$HOME/.local/bin"
+```
+
 ## Quick Start
 
 ```c
@@ -18,10 +26,10 @@ int main(void) { return bench_main(); }
 ```
 
 ```bash
-./scripts/bench.sh bench.c
-./scripts/bench.sh bench.c -n          # + generate notebook
-./scripts/bench.sh bench.c -i 10000    # more iterations
-./scripts/bench.sh bench.c -o results  # output to dir
+benchc bench.c
+benchc bench.c -n          # + generate notebook
+benchc bench.c -i 10000    # more iterations
+benchc bench.c -o results  # output to dir
 ```
 
 ## Macros
@@ -55,10 +63,10 @@ BENCH_CSV=out.csv ./mybench    # output file
 ## Examples
 
 ```bash
-./scripts/bench.sh examples/algorithms/sorting_bench.c -i 500 -n
-./scripts/bench.sh examples/algorithms/search_bench.c -i 1000
-./scripts/bench.sh examples/algorithms/hashtable_bench.c -i 1000
-./scripts/bench.sh examples/algorithms/datastructures_bench.c -i 1000
+benchc examples/algorithms/sorting_bench.c -i 500 -n
+benchc examples/algorithms/search_bench.c -i 1000
+benchc examples/algorithms/hashtable_bench.c -i 1000
+benchc examples/algorithms/datastructures_bench.c -i 1000
 ```
 
 ## Library Mode
