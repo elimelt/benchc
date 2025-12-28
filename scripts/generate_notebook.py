@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-"""
-Generate a Jupyter notebook with benchmark data automatically loaded.
-
-Usage:
-    python generate_notebook.py benchmark_results.csv [output.ipynb]
-"""
-
-import sys
-import json
-import argparse
+import sys, json, argparse, subprocess
 from pathlib import Path
 
+def ensure_venv(outdir: Path):
+    venv = outdir / ".venv"
+    req = Path(__file__).parent.parent / "requirements.txt"
+    if venv.exists():
+        return
+    print(f"Creating venv: {venv}")
+    subprocess.run([sys.executable, "-m", "venv", str(venv)], check=True)
+    pip = venv / "bin" / "pip"
+    subprocess.run([str(pip), "install", "-q", "-r", str(req)], check=True)
+    print(f"Installed deps. Activate: source {venv}/bin/activate")
 
 def create_notebook_cells(csv_path: str) -> list:
     """Create notebook cells for benchmark analysis."""
@@ -194,42 +195,22 @@ def create_notebook(csv_path: str) -> dict:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate a Jupyter notebook for benchmark analysis"
-    )
-    parser.add_argument(
-        "csv_file",
-        help="Path to benchmark results CSV file"
-    )
-    parser.add_argument(
-        "-o", "--output",
-        help="Output notebook path (default: benchmark_analysis.ipynb)",
-        default="benchmark_analysis.ipynb"
-    )
-    parser.add_argument(
-        "--check-csv",
-        action="store_true",
-        help="Verify CSV file exists before creating notebook"
-    )
-
+    parser = argparse.ArgumentParser(description="Generate notebook for benchmark analysis")
+    parser.add_argument("csv_file", help="Path to benchmark results CSV")
+    parser.add_argument("-o", "--output", help="Output notebook path", default="benchmark_analysis.ipynb")
+    parser.add_argument("--no-venv", action="store_true", help="Skip venv creation")
     args = parser.parse_args()
 
     csv_path = Path(args.csv_file)
     output_path = Path(args.output)
 
-    if args.check_csv and not csv_path.exists():
-        print(f"Error: CSV file '{csv_path}' not found", file=sys.stderr)
-        sys.exit(1)
+    if not args.no_venv:
+        ensure_venv(output_path.parent.resolve())
 
-    # Create notebook
-    notebook = create_notebook(str(csv_path))
-
-    # Write notebook
     with open(output_path, 'w') as f:
-        json.dump(notebook, f, indent=2)
+        json.dump(create_notebook(str(csv_path)), f, indent=2)
 
-    print(f"Generated notebook: {output_path}")
-    print(f"Data source: {csv_path}")
+    print(f"Generated: {output_path}")
 
 
 if __name__ == "__main__":
