@@ -17,7 +17,7 @@ export PATH="$PATH:$HOME/.local/bin"
 #define BENCHMARK_IMPLEMENTATION
 #include "benchmark_single.h"
 
-BENCH(my_function, "description") {
+BENCH(my_function) {
     int result = do_work();
     KEEP(result);
 }
@@ -34,11 +34,55 @@ benchc bench.c -o results  # output to dir
 
 ## Macros
 
-| Macro | Description |
-|-------|-------------|
-| `BENCH(name, desc)` | Define a benchmark |
-| `KEEP(x)` | Prevent compiler from optimizing away `x` |
-| `CLOBBER()` | Memory barrier, force memory writes |
+### `BENCH(name)`
+
+Define a benchmark function. The name becomes both the function identifier and the display name (stringified).
+
+```c
+BENCH(fibonacci_20) {
+    int result = fib(20);
+    KEEP(result);
+}
+```
+
+### `KEEP(x)`
+
+Prevents the compiler from optimizing away a computed value. Use on any result you want to force the compiler to actually compute.
+
+```c
+BENCH(qsort_1000) {
+    int arr[1000];
+    for (int i = 0; i < 1000; i++) arr[i] = rand();
+    qsort(arr, 1000, sizeof(int), cmp);
+    KEEP(arr);  // without this, compiler might skip the whole thing
+}
+```
+
+### `CLOBBER()`
+
+Memory barrier that forces all pending memory writes. Use when benchmarking code with side effects on memory.
+
+```c
+BENCH(memset_4kb) {
+    char buf[4096];
+    memset(buf, 0, sizeof(buf));
+    CLOBBER();  // force the write to actually happen
+}
+```
+
+### Combined Example
+
+```c
+BENCH(hash_insert_1000) {
+    hashtable_t *ht = ht_create();
+    for (int i = 0; i < 1000; i++) {
+        ht_insert(ht, i, i * 2);
+    }
+    KEEP(ht);     // don't optimize away the table
+    CLOBBER();    // force all writes
+    ht_free(ht);
+}
+```
 
 ## Output
 
@@ -46,10 +90,10 @@ Each run produces `benchmark_results.csv`:
 
 ```
 name,description,iterations,min_ns,max_ns,mean_ns,median_ns,stddev_ns,p95_ns,p99_ns
-my_function,description,10000,45,892,52.3,48,12.1,67,84
+my_function,my_function,10000,45,892,52.3,48,12.1,67,84
 ```
 
-With `-n`, also generates `benchmark_analysis.ipynb` with pre-loaded charts and a `.venv` with deps.
+With `-n`, also generates `benchmark_analysis.ipynb`. Add `--venv` to create a virtualenv with deps.
 
 ## Environment Variables
 

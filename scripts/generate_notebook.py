@@ -198,13 +198,13 @@ def main():
     parser = argparse.ArgumentParser(description="Generate notebook for benchmark analysis")
     parser.add_argument("csv_file", help="Path to benchmark results CSV")
     parser.add_argument("-o", "--output", help="Output notebook path", default="benchmark_analysis.ipynb")
-    parser.add_argument("--no-venv", action="store_true", help="Skip venv creation")
+    parser.add_argument("--venv", action="store_true", help="Create venv with deps")
     args = parser.parse_args()
 
-    csv_path = Path(args.csv_file)
+    csv_path = Path(args.csv_file).resolve()
     output_path = Path(args.output)
 
-    if not args.no_venv:
+    if args.venv:
         ensure_venv(output_path.parent.resolve())
 
     with open(output_path, 'w') as f:

@@ -26,6 +26,7 @@ Options:
   -w, --warmup N     Warmup iterations (default: 100)
   -q, --quiet        Minimal output
   -s, --single       Use single-header mode (no library linking)
+  --venv             Create venv with notebook deps
   -h, --help         Show this help
 
 Environment variables:
@@ -44,7 +45,7 @@ EOF
 }
 
 # Defaults
-NOTEBOOK=0; OUTPUT_DIR="."; QUIET=0; SINGLE=0; ITERS=""; WARMUP=""; SOURCE=""
+NOTEBOOK=0; OUTPUT_DIR="."; QUIET=0; SINGLE=0; VENV=0; ITERS=""; WARMUP=""; SOURCE=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -54,6 +55,7 @@ while [[ $# -gt 0 ]]; do
         -w|--warmup) WARMUP="$2"; shift 2 ;;
         -q|--quiet) QUIET=1; shift ;;
         -s|--single) SINGLE=1; shift ;;
+        --venv) VENV=1; shift ;;
         -h|--help) usage ;;
         -*) echo -e "${RED}Unknown option: $1${NC}"; usage ;;
         *) SOURCE="$1"; shift ;;
@@ -96,7 +98,9 @@ fi
 # Notebook
 if [[ $NOTEBOOK -eq 1 ]]; then
     NB="${OUTPUT_DIR}/benchmark_analysis.ipynb"
-    python3 "${ROOT_DIR}/scripts/generate_notebook.py" "$CSV" -o "$NB" 2>/dev/null
+    VENV_FLAG=""
+    [[ $VENV -eq 1 ]] && VENV_FLAG="--venv"
+    python3 "${ROOT_DIR}/scripts/generate_notebook.py" "$CSV" -o "$NB" $VENV_FLAG
     [[ $QUIET -eq 0 ]] && echo -e "${GREEN}Notebook: ${NB}${NC}"
 fi
 
